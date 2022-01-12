@@ -1,0 +1,5 @@
+name: Betterblockbreaking
+version: '${version}'
+main: com.github.u9g.betterblockbreaking.Main
+api-version: 1.18
+depend: [ProtocolLib]
