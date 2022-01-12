@@ -16,7 +16,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 public record EventHandlers(BlockBreakManager blockBreakManager) implements Listener {
   @EventHandler
   private void onPlayerArmSwingEvent(PlayerArmSwingEvent e) {
-    if (e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) return;
+    if (e.getPlayer().getGameMode().equals(GameMode.CREATIVE) || !blockBreakManager.player2LastAction.get(e.getPlayer()).equals(Action.LEFT_CLICK_BLOCK)) return;
     var block = e.getPlayer().getTargetBlock(4);
     if (block == null || block.getType().equals(Material.BEDROCK)) return;
     Location blockLoc = block.getLocation();
