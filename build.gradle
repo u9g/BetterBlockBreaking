@@ -1,0 +1,71 @@
+plugins {
+    id 'java'
+    id 'xyz.jpenilla.run-paper' version '1.0.6' // Adds runServer and runMojangMappedServer tasks for testing
+    id 'maven-publish' // https://www.jetbrains.com/help/idea/add-a-gradle-library-to-the-maven-repository.html#publish
+}
+
+group = 'com.github.u9g'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc-repo'
+        url = 'https://papermc.io/repo/repository/maven-public/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT'
+    compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.7.0";
+}
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+tasks {
+    runServer {
+        // Configure the Minecraft version for our task.
+        // This is the only required configuration besides applying the plugin.
+        // Your plugin's jar (or shadowJar if present) will be used automatically.
+        minecraftVersion("1.18.1")
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.github.u9g'
+            artifactId = rootProject.name
+            version = '1.0-SNAPSHOT'
+            from components.java
+        }
+    }
+}
