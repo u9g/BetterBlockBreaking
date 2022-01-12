@@ -22,9 +22,15 @@ public final class BlockBreakManager {
     public Map<Player, Map<Location, Float>> player2Blocks = new LinkedHashMap<>();
     public JavaPlugin plugin;
     public ProtocolManager protocolManager;
+    private final int maxBlocksPerPlayer;
 
-    public BlockBreakManager(JavaPlugin plugin) {
+    /**
+     * @param plugin
+     * @param maxBlocksPerPlayer max blocks that are ticked kept in memory
+     */
+    public BlockBreakManager(JavaPlugin plugin, int maxBlocksPerPlayer) {
         this.plugin = plugin;
+        this.maxBlocksPerPlayer = maxBlocksPerPlayer;
         this.protocolManager = ProtocolLibrary.getProtocolManager();
         plugin.getServer().getPluginManager().registerEvents(new EventHandlers(this), plugin);
         Commands.init();
@@ -45,7 +51,7 @@ public final class BlockBreakManager {
     }
 
     public void tickBlock(Player p, Location l, float tickSize) {
-        var playerMap = player2Blocks.getOrDefault(p, new LinkedHashMap<>());
+        var playerMap = player2Blocks.getOrDefault(p, Util.makeMapWithMaxSize(maxBlocksPerPlayer)); // should be turned down
         float newTicks = playerMap.getOrDefault(l, 0F) + tickSize;
         if (newTicks < 10) {
             sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, newTicks/10);
