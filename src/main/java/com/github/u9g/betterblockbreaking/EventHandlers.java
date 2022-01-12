@@ -35,8 +35,9 @@ public record EventHandlers(BlockBreakManager blockBreakManager) implements List
     }
   }
 
+  @EventHandler
   private void onInteract (PlayerInteractEvent e) {
-    blockBreakManager.player2LastAction.replace(e.getPlayer(), e.getAction());
+    blockBreakManager.player2LastAction.put(e.getPlayer(), e.getAction());
   }
 
   @EventHandler
