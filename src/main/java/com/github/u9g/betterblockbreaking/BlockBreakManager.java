@@ -58,6 +58,7 @@ public final class BlockBreakManager {
             playerMap.put(l, newTicks);
         } else {
             PlayerBreakBlockEvent event = new PlayerBreakBlockEvent(p, l);
+            event.callEvent();
             p.getWorld().getBlockAt(l).setType(event.newMaterial);
             sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, -1); // remove break progress
             playerMap.remove(l);
