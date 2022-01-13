@@ -14,14 +14,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public final class BlockBreakManager {
     public Map<Player, Action> player2LastAction = new LinkedHashMap<>();
     public Map<Player, Map<Location, Float>> player2Blocks = new LinkedHashMap<>();
     public JavaPlugin plugin;
     public ProtocolManager protocolManager;
+    public final Set<Material> unbreakableBlocks = new HashSet<>(List.of(Material.BEDROCK));
     private final int maxBlocksPerPlayer;
 
     /**

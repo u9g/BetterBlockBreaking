@@ -18,7 +18,7 @@ public record EventHandlers(BlockBreakManager blockBreakManager) implements List
   private void onPlayerArmSwingEvent(PlayerArmSwingEvent e) {
     if (e.getPlayer().getGameMode().equals(GameMode.CREATIVE) || !blockBreakManager.player2LastAction.get(e.getPlayer()).equals(Action.LEFT_CLICK_BLOCK)) return;
     var block = e.getPlayer().getTargetBlock(4);
-    if (block == null || block.getType().equals(Material.BEDROCK)) return;
+    if (block == null || blockBreakManager.unbreakableBlocks.contains(block.getType())) return;
     Location blockLoc = block.getLocation();
     PlayerDigBlockEvent event = new PlayerDigBlockEvent(e.getPlayer(), blockLoc);
     if (event.callEvent()) {
