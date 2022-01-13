@@ -1,5 +1,6 @@
 package com.github.u9g.betterblockbreaking;
 
+import com.github.u9g.betterblockbreaking.events.PlayerBreakBlockEvent;
 import com.github.u9g.betterblockbreaking.events.PlayerDigBlockEvent;
 import io.papermc.paper.event.player.PlayerArmSwingEvent;
 import org.bukkit.GameMode;
@@ -9,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
@@ -28,10 +28,10 @@ public record EventHandlers(BlockBreakManager blockBreakManager) implements List
   }
 
   @EventHandler
-  private void onBlockBreak(BlockBreakEvent e) {
+  private void onBlockBreak(PlayerBreakBlockEvent e) {
     for (Player p : blockBreakManager.player2Blocks.keySet()) {
       var playerMap = blockBreakManager.player2Blocks.get(p);
-      playerMap.remove(e.getBlock().getLocation());
+      playerMap.remove(e.location);
     }
   }
 
