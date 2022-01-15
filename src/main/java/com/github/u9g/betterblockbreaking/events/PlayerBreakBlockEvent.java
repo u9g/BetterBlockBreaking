@@ -37,6 +37,8 @@ public final class PlayerBreakBlockEvent extends Event {
         this.newMaterial = newMaterial;
     }
 
+    public static HandlerList getHandlerList() { return handlers; }
+
     public @NotNull HandlerList getHandlers() {
         return handlers;
     }
