@@ -10,13 +10,31 @@ import org.jetbrains.annotations.NotNull;
 public final class PlayerDigBlockEvent extends Event implements Cancellable {
   private static final HandlerList handlers = new HandlerList();
   private boolean isCancelled = false;
-  public Player player;
-  public Location location;
-  public float tickSize = 0.7F;
+  private final Player player;
+  private final Location location;
+  private float tickSize = 0.7F;
 
   public PlayerDigBlockEvent(Player player, Location location) {
     this.player = player;
     this.location = location;
+  }
+
+  @NotNull
+  public Player getPlayer() {
+    return this.player;
+  }
+
+  @NotNull
+  public Location getLocation() {
+    return location;
+  }
+
+  public float getTickSize() {
+    return tickSize;
+  }
+
+  public void setTickSize(float tickSize) {
+    this.tickSize = tickSize;
   }
 
   public @NotNull HandlerList getHandlers() {

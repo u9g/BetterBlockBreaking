@@ -33,12 +33,11 @@ public final class BlockBreakManager {
         this.maxBlocksPerPlayer = maxBlocksPerPlayer;
         this.protocolManager = ProtocolLibrary.getProtocolManager();
         plugin.getServer().getPluginManager().registerEvents(new EventHandlers(this), plugin);
-        Commands.init();
     }
 
     private void sendBlockDamage(Player p, int entityId, Location loc, float progress) {
         Preconditions.checkArgument(loc != null, "loc must not be null");
-        Preconditions.checkArgument((progress >= 0.0 && progress <= 1.0) || progress == -1, "progress must be between 0.0 and 1.0 (inclusive) OR -1");
+        Preconditions.checkArgument(progress >= 0.0 && progress <= 1.0, "progress must be between 0.0 and 1.0 (inclusive)");
         PacketContainer blockAnim = new PacketContainer(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
         int stage = (int) (9 * progress); // There are 0 - 9 damage states
         blockAnim.getIntegers().write(0, entityId).write(1, stage);
@@ -59,8 +58,8 @@ public final class BlockBreakManager {
         } else {
             PlayerBreakBlockEvent event = new PlayerBreakBlockEvent(p, l);
             event.callEvent();
-            p.getWorld().getBlockAt(l).setType(event.newMaterial);
-            sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, -1); // remove break progress
+            p.getWorld().getBlockAt(l).setType(event.getNewMaterial());
+            sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, 0.01f); // remove break progress
             playerMap.remove(l);
         }
         player2Blocks.putIfAbsent(p, playerMap);

@@ -22,7 +22,7 @@ public record EventHandlers(BlockBreakManager blockBreakManager) implements List
     Location blockLoc = block.getLocation();
     PlayerDigBlockEvent event = new PlayerDigBlockEvent(e.getPlayer(), blockLoc);
     if (event.callEvent()) {
-      blockBreakManager.tickBlock(e.getPlayer(), blockLoc, event.tickSize);
+      blockBreakManager.tickBlock(e.getPlayer(), blockLoc, event.getTickSize());
     }
     e.setCancelled(true);
   }
@@ -31,7 +31,7 @@ public record EventHandlers(BlockBreakManager blockBreakManager) implements List
   private void onBlockBreak(PlayerBreakBlockEvent e) {
     for (Player p : blockBreakManager.player2Blocks.keySet()) {
       var playerMap = blockBreakManager.player2Blocks.get(p);
-      playerMap.remove(e.location);
+      playerMap.remove(e.getLocation());
     }
   }
 

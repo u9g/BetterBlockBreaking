@@ -9,20 +9,35 @@ import org.jetbrains.annotations.NotNull;
 
 public final class PlayerBreakBlockEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
-    public Player player;
-    public Location location;
-    public Material newMaterial = Material.AIR;
+    private final Player player;
+    private final Location location;
+    private Material newMaterial = Material.AIR;
 
     public PlayerBreakBlockEvent(Player player, Location location) {
         this.player = player;
         this.location = location;
     }
 
-    public @NotNull HandlerList getHandlers() {
-        return handlers;
+    @NotNull
+    public Player getPlayer() {
+        return this.player;
     }
 
-    public static HandlerList getHandlerList() {
+    @NotNull
+    public Location getLocation() {
+        return this.location;
+    }
+
+    @NotNull
+    public Material getNewMaterial() {
+        return this.newMaterial;
+    }
+
+    public void setNewMaterial(final Material newMaterial) {
+        this.newMaterial = newMaterial;
+    }
+
+    public @NotNull HandlerList getHandlers() {
         return handlers;
     }
 }
