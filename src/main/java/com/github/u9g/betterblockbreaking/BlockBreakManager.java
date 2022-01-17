@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -50,7 +51,7 @@ public final class BlockBreakManager {
     }
 
     public void tickBlock(Player p, Location l, float tickSize) {
-        var playerMap = player2Blocks.getOrDefault(p, Util.makeMapWithMaxSize(maxBlocksPerPlayer)); // should be turned down
+        var playerMap = player2Blocks.getOrDefault(p, Util.makeMapWithMaxSize(maxBlocksPerPlayer));
         float newTicks = playerMap.getOrDefault(l, 0F) + tickSize;
         if (newTicks < 10) {
             sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, newTicks/10);
@@ -63,5 +64,10 @@ public final class BlockBreakManager {
             playerMap.remove(l);
         }
         player2Blocks.putIfAbsent(p, playerMap);
+    }
+
+    @Nullable
+    public Action getPlayerLastAction(Player p) {
+        return this.player2LastAction.get(p);
     }
 }
