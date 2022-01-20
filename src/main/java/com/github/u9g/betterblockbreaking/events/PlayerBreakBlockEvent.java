@@ -2,6 +2,7 @@ package com.github.u9g.betterblockbreaking.events;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -12,11 +13,16 @@ public final class PlayerBreakBlockEvent extends Event {
     private final Player player;
     private final Location location;
     private Material newMaterial = Material.AIR;
+    private Block oldBlock;
 
-    public PlayerBreakBlockEvent(Player player, Location location) {
+    public PlayerBreakBlockEvent(Player player, Location location, Block oldBlock) {
         this.player = player;
         this.location = location;
+        this.oldBlock = oldBlock;
     }
+
+    @NotNull
+    public Block getOldBlock () { return this.oldBlock; }
 
     @NotNull
     public Player getPlayer() {

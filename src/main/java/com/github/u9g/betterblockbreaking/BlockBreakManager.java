@@ -8,8 +8,11 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.destroystokyo.paper.util.SneakyThrow;
 import com.github.u9g.betterblockbreaking.events.PlayerBreakBlockEvent;
 import com.google.common.base.Preconditions;
+import com.google.gson.internal.LinkedTreeMap;
+import it.unimi.dsi.fastutil.objects.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,11 +21,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public final class BlockBreakManager {
-    public Map<Player, Action> player2LastAction = new LinkedHashMap<>();
-    public Map<Player, Map<Location, Float>> player2Blocks = new LinkedHashMap<>();
+    public Map<Player, Action> player2LastAction = new HashMap<>();
+    public Map<Player, Map<Location, Double>> player2Blocks = new HashMap<>();
     public JavaPlugin plugin;
     public ProtocolManager protocolManager;
-    public final Set<Material> unbreakableBlocks = new HashSet<>(List.of(Material.BEDROCK));
+    public static final Set<Material> unbreakableBlocks = new HashSet<>(List.of(Material.BEDROCK));
     private final int maxBlocksPerPlayer;
 
     /**
@@ -36,9 +39,9 @@ public final class BlockBreakManager {
         plugin.getServer().getPluginManager().registerEvents(new EventHandlers(this), plugin);
     }
 
-    private void sendBlockDamage(Player p, int entityId, Location loc, float progress) {
+    private void sendBlockDamage(Player p, int entityId, Location loc, double progress) {
         Preconditions.checkArgument(loc != null, "loc must not be null");
-        Preconditions.checkArgument(progress >= 0.0 && progress <= 1.0, "progress must be between 0.0 and 1.0 (inclusive)");
+//        Preconditions.checkArgument(progress >= 0.0 && progress <= 1.0, "progress must be between 0.0 and 1.0 (inclusive)");
         PacketContainer blockAnim = new PacketContainer(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
         int stage = (int) (9 * progress); // There are 0 - 9 damage states
         blockAnim.getIntegers().write(0, entityId).write(1, stage);
@@ -50,17 +53,17 @@ public final class BlockBreakManager {
         }
     }
 
-    public void tickBlock(Player p, Location l, float tickSize) {
+    public void tickBlock(Player p, Location l, double tickSize) {
         var playerMap = player2Blocks.getOrDefault(p, Util.makeMapWithMaxSize(maxBlocksPerPlayer));
-        float newTicks = playerMap.getOrDefault(l, 0F) + tickSize;
+        double newTicks = playerMap.getOrDefault(l, 0.0) + tickSize;
         if (newTicks < 10) {
             sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, newTicks/10);
             playerMap.put(l, newTicks);
         } else {
-            PlayerBreakBlockEvent event = new PlayerBreakBlockEvent(p, l);
+            PlayerBreakBlockEvent event = new PlayerBreakBlockEvent(p, l, p.getWorld().getBlockAt(l));
             event.callEvent();
             p.getWorld().getBlockAt(l).setType(event.getNewMaterial());
-            sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, 0.01f); // remove break progress
+            sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, 11f); // remove break progress
             playerMap.remove(l);
         }
         player2Blocks.putIfAbsent(p, playerMap);

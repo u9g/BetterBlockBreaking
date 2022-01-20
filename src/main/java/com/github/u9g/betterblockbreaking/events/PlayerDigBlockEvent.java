@@ -1,6 +1,7 @@
 package com.github.u9g.betterblockbreaking.events;
 
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -12,7 +13,7 @@ public final class PlayerDigBlockEvent extends Event implements Cancellable {
   private boolean isCancelled = false;
   private final Player player;
   private final Location location;
-  private float tickSize = 0.7F;
+  private double tickSize = 0.7;
 
   public PlayerDigBlockEvent(Player player, Location location) {
     this.player = player;
@@ -29,11 +30,15 @@ public final class PlayerDigBlockEvent extends Event implements Cancellable {
     return location;
   }
 
-  public float getTickSize() {
+  public Block getBlock() {
+    return location.getBlock();
+  }
+
+  public double getTickSize() {
     return tickSize;
   }
 
-  public void setTickSize(float tickSize) {
+  public void setTickSize(double tickSize) {
     this.tickSize = tickSize;
   }
 
