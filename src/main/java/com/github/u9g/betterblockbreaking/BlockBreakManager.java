@@ -8,11 +8,8 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.destroystokyo.paper.util.SneakyThrow;
 import com.github.u9g.betterblockbreaking.events.PlayerBreakBlockEvent;
 import com.google.common.base.Preconditions;
-import com.google.gson.internal.LinkedTreeMap;
-import it.unimi.dsi.fastutil.objects.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -21,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public final class BlockBreakManager {
-    public Map<Player, Action> player2LastAction = new HashMap<>();
-    public Map<Player, Map<Location, Double>> player2Blocks = new HashMap<>();
+    public Map<UUID, Action> player2LastAction = new HashMap<>();
+    public Map<UUID, Map<Long, Double>> player2Blocks = new HashMap<>();
     public JavaPlugin plugin;
     public ProtocolManager protocolManager;
     public static final Set<Material> unbreakableBlocks = new HashSet<>(List.of(Material.BEDROCK));
@@ -54,23 +51,35 @@ public final class BlockBreakManager {
     }
 
     public void tickBlock(Player p, Location l, double tickSize) {
-        var playerMap = player2Blocks.getOrDefault(p, Util.makeMapWithMaxSize(maxBlocksPerPlayer));
-        double newTicks = playerMap.getOrDefault(l, 0.0) + tickSize;
+        Map<Long, Double> playerMap = player2Blocks.getOrDefault(p.getUniqueId(), Util.createLRUMap(maxBlocksPerPlayer));
+        double newTicks = playerMap.getOrDefault(l.toBlockKey(), 0.0) + tickSize;
         if (newTicks < 10) {
             sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, newTicks/10);
-            playerMap.put(l, newTicks);
+            playerMap.put(l.toBlockKey(), newTicks);
         } else {
             PlayerBreakBlockEvent event = new PlayerBreakBlockEvent(p, l, p.getWorld().getBlockAt(l));
-            event.callEvent();
-            p.getWorld().getBlockAt(l).setType(event.getNewMaterial());
+            if (event.callEvent()) {
+                p.getWorld().getBlockAt(l).setType(event.getNewMaterial());
+                playerMap.remove(l.toBlockKey());
+            }
             sendBlockDamage(p, p.getEntityId() + l.hashCode(), l, 11f); // remove break progress
-            playerMap.remove(l);
         }
-        player2Blocks.putIfAbsent(p, playerMap);
+        player2Blocks.putIfAbsent(p.getUniqueId(), playerMap);
     }
 
     @Nullable
     public Action getPlayerLastAction(Player p) {
-        return this.player2LastAction.get(p);
+        return this.player2LastAction.get(p.getUniqueId());
+    }
+}
+
+class Util {
+    public static <K, V> Map<K, V> createLRUMap(final int maxEntries) {
+        return new LinkedHashMap<K, V>(maxEntries*10/7, 0.7f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+                return size() > maxEntries;
+            }
+        };
     }
 }

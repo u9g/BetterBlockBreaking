@@ -1,15 +1,11 @@
 package com.github.u9g.betterblockbreaking;
 
-import com.destroystokyo.paper.MaterialTags;
 import com.github.u9g.betterblockbreaking.events.PlayerBreakBlockEvent;
 import com.github.u9g.betterblockbreaking.events.PlayerDigBlockEvent;
 import com.google.common.base.Stopwatch;
 import io.papermc.paper.event.player.PlayerArmSwingEvent;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,11 +13,23 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public record EventHandlers(BlockBreakManager blockBreakManager) implements Listener {
   @EventHandler
   private void onPlayerArmSwingEvent(PlayerArmSwingEvent e) {
-    if (e.getPlayer().getGameMode().equals(GameMode.CREATIVE) || blockBreakManager.getPlayerLastAction(e.getPlayer()) != Action.LEFT_CLICK_BLOCK) return;
+    var player = e.getPlayer();
+
+    if (!player.hasPotionEffect(PotionEffectType.SLOW_DIGGING) && isMining(player)) {
+      player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 999999999, -1));
+    } else if (player.hasPotionEffect(PotionEffectType.SLOW_DIGGING) && !isMining(player)) {
+      player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+    }
+
+    if (player.getGameMode().equals(GameMode.CREATIVE) ||
+            blockBreakManager.getPlayerLastAction(e.getPlayer()) != Action.LEFT_CLICK_BLOCK) return;
     var block = e.getPlayer().getTargetBlock(5);
     if (block == null || BlockBreakManager.unbreakableBlocks.contains(block.getType())) return;
     Location blockLoc = block.getLocation();
@@ -34,10 +42,10 @@ public record EventHandlers(BlockBreakManager blockBreakManager) implements List
 
   @EventHandler
   private void onBlockBreak(PlayerBreakBlockEvent e) {
-    for (Player p : blockBreakManager.player2Blocks.keySet()) {
-      var playerMap = blockBreakManager.player2Blocks.get(p);
-      playerMap.remove(e.getLocation());
-    }
+    var sw = Stopwatch.createStarted();
+    blockBreakManager
+            .player2Blocks
+            .forEach((key, value) -> value.remove(e.getLocation().toBlockKey()));
   }
 
   @EventHandler
@@ -47,11 +55,21 @@ public record EventHandlers(BlockBreakManager blockBreakManager) implements List
 
   @EventHandler
   private void onInteract (PlayerInteractEvent e) {
-    blockBreakManager.player2LastAction.put(e.getPlayer(), e.getAction());
+    blockBreakManager.player2LastAction.put(e.getPlayer().getUniqueId(), e.getAction());
   }
 
   @EventHandler
   private void onPlayerChangeWorld(PlayerChangedWorldEvent e) {
-    blockBreakManager.player2Blocks.remove(e.getPlayer());
+    blockBreakManager.player2Blocks.remove(e.getPlayer().getUniqueId());
+  }
+
+  @EventHandler
+  private void onPlayerChangeWorld(PlayerQuitEvent e) {
+    blockBreakManager.player2Blocks.remove(e.getPlayer().getUniqueId());
+    blockBreakManager.player2LastAction.remove(e.getPlayer().getUniqueId());
+  }
+
+  private boolean isMining(Player player) {
+    return blockBreakManager.getPlayerLastAction(player) == Action.LEFT_CLICK_BLOCK;
   }
 }

@@ -4,25 +4,27 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public final class PlayerBreakBlockEvent extends Event {
+public final class PlayerBreakBlockEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private final Player player;
     private final Location location;
     private Material newMaterial = Material.AIR;
-    private Block oldBlock;
+    private final Block block;
+    private boolean cancelled = false;
 
-    public PlayerBreakBlockEvent(Player player, Location location, Block oldBlock) {
+    public PlayerBreakBlockEvent(Player player, Location location, Block block) {
         this.player = player;
         this.location = location;
-        this.oldBlock = oldBlock;
+        this.block = block;
     }
 
     @NotNull
-    public Block getOldBlock () { return this.oldBlock; }
+    public Block getBlock() { return this.block; }
 
     @NotNull
     public Player getPlayer() {
@@ -47,5 +49,15 @@ public final class PlayerBreakBlockEvent extends Event {
 
     public @NotNull HandlerList getHandlers() {
         return handlers;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancelled = cancel;
     }
 }
