@@ -2,7 +2,6 @@ package com.github.u9g.betterblockbreaking;
 
 import com.github.u9g.betterblockbreaking.events.PlayerBreakBlockEvent;
 import com.github.u9g.betterblockbreaking.events.PlayerDigBlockEvent;
-import com.google.common.base.Stopwatch;
 import io.papermc.paper.event.player.PlayerArmSwingEvent;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -42,10 +41,7 @@ public record EventHandlers(BlockBreakManager blockBreakManager) implements List
 
   @EventHandler
   private void onBlockBreak(PlayerBreakBlockEvent e) {
-    var sw = Stopwatch.createStarted();
-    blockBreakManager
-            .player2Blocks
-            .forEach((key, value) -> value.remove(e.getLocation().toBlockKey()));
+    blockBreakManager.playerBlocks.removeBlock(e.getLocation());
   }
 
   @EventHandler
@@ -55,18 +51,18 @@ public record EventHandlers(BlockBreakManager blockBreakManager) implements List
 
   @EventHandler
   private void onInteract (PlayerInteractEvent e) {
-    blockBreakManager.player2LastAction.put(e.getPlayer().getUniqueId(), e.getAction());
+    blockBreakManager.player2LastAction.put(e.getPlayer(), e.getAction());
   }
 
   @EventHandler
   private void onPlayerChangeWorld(PlayerChangedWorldEvent e) {
-    blockBreakManager.player2Blocks.remove(e.getPlayer().getUniqueId());
+    blockBreakManager.playerBlocks.removePlayer(e.getPlayer());
   }
 
   @EventHandler
   private void onPlayerChangeWorld(PlayerQuitEvent e) {
-    blockBreakManager.player2Blocks.remove(e.getPlayer().getUniqueId());
-    blockBreakManager.player2LastAction.remove(e.getPlayer().getUniqueId());
+    blockBreakManager.playerBlocks.removePlayer(e.getPlayer());
+    blockBreakManager.player2LastAction.remove(e.getPlayer());
   }
 
   private boolean isMining(Player player) {
